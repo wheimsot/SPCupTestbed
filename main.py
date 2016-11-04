@@ -1,11 +1,10 @@
 from PyQt4 import QtGui,QtCore
-import sys
 import main_window
 import numpy as np
 import scipy.io.wavfile
 import pyqtgraph
+import sys
 import time
-import queue
 
 
 class MainWindow(QtGui.QMainWindow, main_window.Ui_MainWindow):
@@ -41,8 +40,6 @@ class MainWindow(QtGui.QMainWindow, main_window.Ui_MainWindow):
         self.chunk_window = np.empty(shape=(0, 0), dtype=np.int16)
         # Most recent audio chunk
         self.cur_chunk = np.empty(shape=(0, 0), dtype=np.int16)
-        self.queued_data = queue.Queue()
-        self.all_data = np.empty(shape=(0, 0), dtype=np.int16)
 
     @QtCore.pyqtSignature("")
     def on_fileButton_clicked(self):
@@ -63,9 +60,11 @@ class MainWindow(QtGui.QMainWindow, main_window.Ui_MainWindow):
                 self.beatTimes.setItem(0, i, QtGui.QTableWidgetItem(str(self.beat_times[i])))
             self.wav_rate, self.wav_data = scipy.io.wavfile.read(self.wav_path)
             pen = pyqtgraph.mkPen(color='b')
+            symbol_pen = pyqtgraph.mkPen(color='r')
             t = np.arange(0, self.wav_data.size / self.wav_rate, step=1 / self.wav_rate)
             self.filePlot.plot(t, self.wav_data.astype(np.float), pen=pen, clear=True)
-            self.filePlot.plot(self.beat_times, np.zeros_like(self.beat_times), pen=None, symbol='+', clear=False)
+            temp = 5000*np.ones_like(self.beat_times)
+            self.filePlot.plot(self.beat_times, temp, symbolPen=symbol_pen, symbol='+', clear=False)
             # Enable/disable required buttons
             self.startButton.setEnabled(True)
             self.fileButton.setEnabled(True)
