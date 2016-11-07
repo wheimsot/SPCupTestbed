@@ -27,7 +27,7 @@ class MainWindow(QtGui.QMainWindow, main_window.Ui_MainWindow):
         # Beat file data
         self.beat_path = ''
         self.beat_times = np.empty(shape=(0, 0), dtype=np.float)
-        ### Algorithm parameters
+        # Algorithm parameters
         self.run = False
         # Timing parameters
         self.t0 = 0
@@ -101,12 +101,16 @@ class MainWindow(QtGui.QMainWindow, main_window.Ui_MainWindow):
         t = np.arange(0, 4096/22050, step=1/22050)
         self.inputPlot.plot(np.arange(0, stop=self.all_data.size/22050, step=1/22050), self.all_data, pen=pen, clear=True)#np.random.uniform(size=4096), pen=pen, clear=True)
         """
+        # Algorithm stuff
+
+        #
         cur_time = time.clock()
         if cur_time-self.t0 > self.chunk_index*(self.chunk_size/self.wav_rate):
             print('Grabbing new chunk')
             self.data_callback()
             self.progressBar.setValue(self.chunk_index)
             if cur_time > self.end_time + self.t0:
+                # All data has been grabbed from wave file. Stop the loop.
                 self.run = False
                 # Enable/disable required buttons
                 self.startButton.setEnabled(True)
