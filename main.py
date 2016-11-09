@@ -20,6 +20,8 @@ class MainWindow(QtGui.QMainWindow, main_window.Ui_MainWindow):
         # Progress bar initialization and paramters
         self.progressBar.setRange(0, 100)
         self.progressBar.setValue(0)
+        # Clear beat table
+        self.beatTimes.clearContents()
         # Wave file paramters
         self.wav_path = ''
         self.wav_data = np.empty(shape=(0, 0), dtype=np.int16)
