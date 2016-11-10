@@ -33,7 +33,9 @@ class MainWindow(QtGui.QMainWindow, main_window.Ui_MainWindow):
         self.run = False
         self.alg_times = []
         # Timing parameters
+        self.period = 0.5
         self.t0 = 0
+        self.cur_time = 0
         self.end_time = 0
         self.number_chunks = 0
         self.chunk_index = 0
@@ -90,6 +92,7 @@ class MainWindow(QtGui.QMainWindow, main_window.Ui_MainWindow):
         self.progressBar.setValue(self.chunk_index)
         # Initialize time zero
         self.t0 = time.clock()
+        self.cur_time = time.clock()
         # Grab the first chunk of data
         self.data_callback()
         # Enable/disable required buttons
@@ -103,21 +106,28 @@ class MainWindow(QtGui.QMainWindow, main_window.Ui_MainWindow):
         Main algorithm routine. This function will call itself until the entire simulated
         song has been processed in "real time."
         """
-
-        #data = self.queued_data.get()
-        """pen = pyqtgraph.mkPen(color='b')
-        t = np.arange(0, 4096/22050, step=1/22050)
-        self.inputPlot.plot(np.arange(0, stop=self.all_data.size/22050, step=1/22050), self.all_data, pen=pen, clear=True)#np.random.uniform(size=4096), pen=pen, clear=True)
-        """
         # Algorithm stuff
-        #if np.amax(self.cur_chunk)
+        if len(self.alg_times) == 0:
+            # First beat time can be calculated by an onset threshold
+            if np.amax(self.cur_chunk) > 2500:
+                max_index = np.argmax(self.cur_chunk)
+                # Map the index to a point in time and save it
+                t = self.cur_time - self.t0 + max_index/self.wav_rate
+                self.alg_times.append(t)
+        else:
+            # Main part of algorithm routine
+            if self.cur_time - self.t0 - self.alg_times[-1] > self.period:
+                self.alg_times.append(self.alg_times[-1] + self.period)
+
         #
-        cur_time = time.clock()
-        if cur_time-self.t0 > self.chunk_index*(self.chunk_size/self.wav_rate):
+        # Real-time simulation
+        self.cur_time = time.clock()
+        if self.cur_time-self.t0 > self.chunk_index*(self.chunk_size/self.wav_rate):
+            # If "new" data is present, grab it
             print('Grabbing new chunk')
             self.data_callback()
             self.progressBar.setValue(self.chunk_index)
-            if cur_time > self.end_time + self.t0:
+            if self.cur_time > self.end_time + self.t0:
                 # All data has been grabbed from wave file. Stop the loop.
                 self.run = False
                 # Show results in table
@@ -135,7 +145,7 @@ class MainWindow(QtGui.QMainWindow, main_window.Ui_MainWindow):
                 self.fileButton.setEnabled(True)
                 print('Done')
         if self.run:
-            # Call itself
+            # Call itself until the entire file has been read
             QtCore.QTimer.singleShot(1, self.algorithm)
 
     def data_callback(self):
